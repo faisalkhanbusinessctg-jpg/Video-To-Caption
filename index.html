@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Content Studio — ভিডিও থেকে কনটেন্ট ও SEO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/html-docx-js/dist/html-docx.js"></script>
+<style>
+  :root{
+    --bg:#0B0D10;
+    --panel:#14171C;
+    --panel-2:#1B1F26;
+    --line:#252B33;
+    --text:#EDEEF0;
+    --muted:#8B929C;
+    --rec:#FF5A36;
+    --rec-dim:#4A2318;
+    --ai:#29D9C2;
+    --ai-dim:#123330;
+    --warn:#F2B84B;
+  }
+  :root[data-theme="light"]{
+    --bg:#F5F6F8;
+    --panel:#FFFFFF;
+    --panel-2:#F0F1F4;
+    --line:#E1E4E9;
+    --text:#14171C;
+    --muted:#6B7280;
+    --rec:#E64A26;
+    --rec-dim:#FFE1D6;
+    --ai:#0B9C8A;
+    --ai-dim:#DFF7F3;
+    --warn:#B9760E;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Hind Siliguri', sans-serif;
+    min-height:100vh;
+    transition:background .2s, color .2s;
+  }
+  .wrap{ max-width:920px; margin:0 auto; padding:28px 18px 90px; }
+
+  header{ display:flex; align-items:center; gap:14px; margin-bottom:8px; }
+  .rec-dot{ width:14px; height:14px; border-radius:50%; background:var(--rec);
+    box-shadow:0 0 0 0 rgba(255,90,54,.6); animation:pulse 1.8s infinite; flex-shrink:0; }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(255,90,54,.55);}
+    70%{box-shadow:0 0 0 12px rgba(255,90,54,0);}
+    100%{box-shadow:0 0 0 0 rgba(255,90,54,0);}
+  }
+  h1{ font-size:22px; font-weight:700; margin:0; letter-spacing:.2px;}
+  .sub{ color:var(--muted); font-size:14px; margin:6px 0 26px; }
+
+  .wave{ display:flex; align-items:flex-end; gap:3px; height:26px; margin-left:auto; }
+  .theme-toggle{ background:transparent; border:1px solid var(--line); color:var(--text);
+    border-radius:8px; padding:8px 11px; font-size:15px; cursor:pointer; margin-left:12px; line-height:1; }
+  .theme-toggle:hover{ border-color:var(--ai); }
+  .wave span{ width:3px; background:var(--ai); border-radius:2px; opacity:.55;
+    animation:bar 1.2s ease-in-out infinite; }
+  .wave span:nth-child(1){height:40%; animation-delay:0s;}
+  .wave span:nth-child(2){height:80%; animation-delay:.15s;}
+  .wave span:nth-child(3){height:55%; animation-delay:.3s;}
+  .wave span:nth-child(4){height:95%; animation-delay:.45s;}
+  .wave span:nth-child(5){height:35%; animation-delay:.6s;}
+  @keyframes bar{ 0%,100%{transform:scaleY(.5);} 50%{transform:scaleY(1);} }
+
+  .steps{ display:flex; gap:10px; margin-bottom:22px; flex-wrap:wrap; }
+  .step{ display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:8px;
+    background:var(--panel); border:1px solid var(--line); font-size:13px; color:var(--muted); }
+  .step.active{ color:var(--text); border-color:var(--ai); }
+  .step .n{ font-family:'JetBrains Mono',monospace; font-weight:600; color:var(--ai); font-size:12px; }
+
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:18px; }
+  .card h2{ font-size:15px; margin:0 0 14px; display:flex; align-items:center; gap:8px; }
+  .card h2 .tag{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ai); background:var(--ai-dim);
+    padding:2px 7px; border-radius:5px; }
+
+  label{ display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
+  input[type=text], input[type=password], select{
+    width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    padding:11px 12px; border-radius:8px; font-size:14px; font-family:inherit; outline:none;
+  }
+  input[type=text]:focus, input[type=password]:focus, select:focus{ border-color:var(--ai); }
+  .hint{ font-size:12px; color:var(--muted); margin-top:6px; line-height:1.6; }
+  .hint a{ color:var(--ai); }
+
+  .custom-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:16px; }
+
+  .gen-progress{ height:6px; background:var(--panel-2); border-radius:4px; overflow:hidden;
+    border:1px solid var(--line); margin:14px 0 4px; position:relative; display:none; }
+  .gen-progress .bar{ position:absolute; top:0; left:-30%; height:100%; width:30%;
+    background:linear-gradient(90deg,var(--ai),var(--warn)); animation:genslide 1.1s ease-in-out infinite; border-radius:4px; }
+  @keyframes genslide{ 0%{left:-30%;} 100%{left:100%;} }
+
+  .file-drop{ border:1.5px dashed var(--line); border-radius:12px; padding:26px; text-align:center;
+    cursor:pointer; transition:.15s; background:var(--panel-2); }
+  .file-drop:hover{ border-color:var(--ai); }
+  .file-drop.drag-over{ border-color:var(--ai); background:var(--ai-dim); }
+  .file-drop input{ display:none; }
+  .file-drop .fname{ color:var(--ai); font-size:13px; margin-top:8px; word-break:break-all; }
+
+  button{ font-family:inherit; font-size:14px; font-weight:600; border:none; border-radius:9px;
+    padding:12px 18px; cursor:pointer; transition:.15s; }
+  .btn-rec{ background:var(--rec); color:#fff; }
+  .btn-rec:hover{ filter:brightness(1.08); }
+  .btn-ai{ background:var(--ai); color:#04211d; }
+  .btn-ai:hover{ filter:brightness(1.08); }
+  .btn-ghost{ background:transparent; color:var(--muted); border:1px solid var(--line); }
+  .btn-ghost:hover{ color:var(--text); border-color:var(--muted); }
+  .btn-sm{ padding:9px 14px; font-size:13px; }
+  button:disabled{ opacity:.45; cursor:not-allowed; }
+  .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+  .progress-wrap{ margin-top:16px; display:none; }
+  .progress-bar{ height:8px; background:var(--panel-2); border-radius:5px; overflow:hidden; border:1px solid var(--line); }
+  .progress-fill{ height:100%; width:0%; background:linear-gradient(90deg,var(--rec),var(--warn)); transition:width .3s; }
+  .progress-label{ font-size:12px; color:var(--muted); margin-top:8px; font-family:'JetBrains Mono',monospace; }
+
+  textarea{ width:100%; min-height:160px; background:var(--panel-2); border:1px solid var(--line);
+    color:var(--text); border-radius:9px; padding:12px; font-size:14px; font-family:'Hind Siliguri',sans-serif;
+    resize:vertical; outline:none; line-height:1.7; }
+  textarea:focus{ border-color:var(--ai); }
+
+  .result-block{ background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:12px; }
+  .result-block .rb-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .result-block .rb-title{ font-size:13px; color:var(--ai); font-weight:600; }
+  .result-block .rb-body{ font-size:14px; line-height:1.75; white-space:pre-wrap; }
+  .copy-btn{ background:transparent; border:1px solid var(--line); color:var(--muted); font-size:11px;
+    padding:5px 10px; border-radius:6px; }
+  .copy-btn:hover{ color:var(--ai); border-color:var(--ai); }
+  .tags-list{ display:flex; flex-wrap:wrap; gap:6px; }
+  .tag-pill{ background:var(--ai-dim); color:var(--ai); font-size:12px; padding:4px 10px; border-radius:20px; }
+
+  .toast{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    background:var(--panel-2); border:1px solid var(--ai); color:var(--text); padding:10px 18px;
+    border-radius:9px; font-size:13px; opacity:0; pointer-events:none; transition:.25s; z-index:50; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
+
+  .log{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--muted); margin-top:10px;
+    max-height:120px; overflow-y:auto; }
+  .log div{ padding:2px 0; }
+  .err{ color:var(--rec); }
+
+  .download-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+
+  .seg-row{ display:flex; gap:10px; align-items:flex-start; background:var(--panel-2);
+    border:1px solid var(--line); border-radius:9px; padding:10px; margin-bottom:8px; }
+  .seg-index{ font-family:'JetBrains Mono',monospace; color:var(--muted); width:24px; padding-top:9px; font-size:12px; flex-shrink:0; }
+  .seg-times{ display:flex; flex-direction:column; gap:5px; width:104px; flex-shrink:0; }
+  .seg-times input{ width:100%; font-family:'JetBrains Mono',monospace; font-size:12px;
+    background:var(--panel); border:1px solid var(--line); color:var(--text); border-radius:6px; padding:6px 8px; outline:none; }
+  .seg-times input:focus{ border-color:var(--ai); }
+  .seg-text{ flex:1; }
+  .seg-text textarea{ min-height:44px; font-size:13px; padding:8px; line-height:1.6; }
+  .seg-del{ background:transparent; border:1px solid var(--line); color:var(--rec); font-size:13px;
+    padding:8px 10px; border-radius:6px; flex-shrink:0; align-self:flex-start; }
+  .seg-del:hover{ border-color:var(--rec); }
+  .seg-editor-head{ display:flex; justify-content:space-between; align-items:center; margin:16px 0 10px; flex-wrap:wrap; gap:8px; }
+  .seg-list{ max-height:420px; overflow-y:auto; padding-right:2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="rec-dot"></div>
+    <h1>Video Content Studio</h1>
+    <div class="wave"><span></span><span></span><span></span><span></span><span></span></div>
+    <button class="theme-toggle" id="themeToggle" title="থিম পরিবর্তন">🌙</button>
+  </header>
+  <div class="sub">ভিডিও দিন — স্বয়ংক্রিয়ভাবে ট্রান্সক্রিপ্ট, সাবটাইটেল, সব প্ল্যাটফর্মের ক্যাপশন, টাইটেল, ব্লগ ও SEO তৈরি হবে।</div>
+
+  <div class="steps">
+    <div class="step active" id="step1"><span class="n">০১</span> API Key</div>
+    <div class="step" id="step2"><span class="n">০২</span> আপলোড</div>
+    <div class="step" id="step3"><span class="n">০৩</span> ট্রান্সক্রিপ্ট</div>
+    <div class="step" id="step4"><span class="n">০৪</span> কনটেন্ট জেনারেট</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag">STEP 01</span> Google AI Studio (Gemini) API Key</h2>
+    <label for="apiKey">Gemini API Key</label>
+    <input type="password" id="apiKey" placeholder="AIzaSy... আপনার Gemini API key এখানে বসান">
+    <div class="hint">
+      <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> এ যান → Google অ্যাকাউন্ট দিয়ে লগিন করুন → "Create API Key" চাপুন → key কপি করে এখানে বসান।
+      এটা সাধারণ API key, কোনো ক্রেডিট কার্ড/বিলিং লাগে না (ফ্রি টায়ার আছে), এবং OAuth লগিনেরও দরকার নেই। key শুধু আপনার ব্রাউজারে (localStorage) থাকে, সরাসরি Google-এর API-তে যায়, অন্য কোথাও যায় না।
+    </div>
+    <div style="margin-top:14px;">
+      <label for="modelSelect">মডেল</label>
+      <select id="modelSelect">
+        <option value="gemini-3.6-flash">Gemini 3.6 Flash — দ্রুত, প্রতিদিনের কাজের জন্য (সুপারিশকৃত)</option>
+        <option value="gemini-3.6-pro">Gemini 3.6 Pro — ধীরে কিন্তু বেশি নির্ভুল/গভীর বিশ্লেষণ</option>
+      </select>
+      <div class="hint">লম্বা বা জটিল ভিডিও, অথবা বেশি নির্ভুল ট্রান্সক্রিপ্ট/কনটেন্ট দরকার হলে Pro বেছে নিন — খরচ ও সময় একটু বেশি লাগবে।</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag">STEP 02</span> ভিডিও আপলোড</h2>
+    <div class="file-drop" id="dropZone">
+      <div id="dropLabel">এখানে ক্লিক করে অথবা ফাইল টেনে এনে (drag &amp; drop) ভিডিও, অডিও বা ছবি ফাইল বাছাই করুন (mp4/webm/mov/mkv, mp3/wav/m4a, jpg/png)</div>
+      <div class="fname" id="fileName"></div>
+      <input type="file" id="videoInput" accept="video/*,audio/*,image/*">
+    </div>
+    <div class="hint">টিপ: ভিডিও/অডিও ৫-১০ মিনিটের ভিতরে হলে দ্রুত ও নির্ভুল রেজাল্ট পাবেন। ফাইলটি সরাসরি Google-এ আপলোড হয়ে প্রসেস হবে (আলাদা করে অডিও বের করার দরকার নেই)। ছবি দিলে ছবির বিষয়বস্তু বিশ্লেষণ করে কনটেন্ট তৈরি হবে।</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag">বিকল্প</span> অথবা ভিডিও ছাড়াই — টপিক/টেক্সট লিখুন</h2>
+    <div class="hint">ভিডিও আপলোড করতে না চাইলে এখানে সংক্ষেপে বিষয়বস্তু লিখে দিন — সেটা বুঝে নিয়ে সরাসরি ক্যাপশন/টাইটেল/বিবরণ ও SEO তৈরি হবে। (এক্ষেত্রে সাবটাইটেল তৈরি হবে না, যেহেতু কোনো ভিডিও নেই।)</div>
+    <textarea id="manualTopicInput" placeholder="যেমন: গ ইউনিট ভর্তি পরীক্ষার প্রস্তুতির জন্য Next Step বইয়ের রিভিউ — বইয়ে কী কী আছে, কাদের জন্য উপযোগী, কীভাবে পড়লে ভালো ফল পাওয়া যাবে..." style="min-height:110px;"></textarea>
+    <div class="row" style="margin-top:12px;">
+      <button class="btn-ai" id="useTopicBtn">✍️ এই টেক্সট থেকে কনটেন্ট বানান</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag">STEP 03</span> ট্রান্সক্রিপ্ট ও সাবটাইটেল</h2>
+    <div class="row">
+      <button class="btn-rec" id="transcribeBtn">▶ ট্রান্সক্রিপ্ট শুরু করুন</button>
+    </div>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel">শুরু হচ্ছে...</div>
+      <div class="log" id="logBox"></div>
+    </div>
+    <div id="transcriptArea" style="display:none; margin-top:16px;">
+      <label>ট্রান্সক্রিপ্ট (প্রয়োজনে ঠিক করে নিন, তারপর কনটেন্ট জেনারেট করুন)</label>
+      <textarea id="transcriptText"></textarea>
+      <div class="row" style="margin-top:12px;" id="subtitleRow">
+        <button class="btn-ghost btn-sm" id="srtBtn">⬇ SRT সাবটাইটেল</button>
+        <button class="btn-ghost btn-sm" id="vttBtn">⬇ VTT সাবটাইটেল</button>
+        <button class="btn-ghost btn-sm" id="txtBtn">⬇ TXT ট্রান্সক্রিপ্ট</button>
+      </div>
+      <div class="hint" id="subtitleHint"></div>
+
+      <div id="subtitleEditor" style="display:none;">
+        <div class="seg-editor-head">
+          <label style="margin:0;">সাবটাইটেল এডিটর (মোট <span id="segCount">0</span>টি সেগমেন্ট)</label>
+          <div class="row" style="gap:8px;">
+            <button class="btn-ghost btn-sm" id="addSegBtn">+ নতুন সেগমেন্ট</button>
+            <button class="btn-ghost btn-sm" id="sortSegBtn">🔃 সময় অনুযায়ী সাজান</button>
+          </div>
+        </div>
+        <div class="hint">সময় hh:mm:ss ফরম্যাটে লিখুন (যেমন 00:01:23)। পরিবর্তন করলে ফিল্ড থেকে বের হওয়ার সাথে সাথে SRT/VTT ডাউনলোডে সেটাই প্রযোজ্য হবে।</div>
+        <div class="seg-list" id="segmentList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag">STEP 04</span> কনটেন্ট ও SEO জেনারেট করুন</h2>
+
+    <div class="custom-grid">
+      <div>
+        <label for="custNiche">নিশ/ক্যাটাগরি (ঐচ্ছিক)</label>
+        <input type="text" id="custNiche" placeholder="যেমন: শিক্ষা, রান্না, টেক রিভিউ">
+      </div>
+      <div>
+        <label for="custAudience">টার্গেট অডিয়েন্স (ঐচ্ছিক)</label>
+        <input type="text" id="custAudience" placeholder="যেমন: ভর্তি পরীক্ষার্থী">
+      </div>
+      <div>
+        <label for="custKeyword">টার্গেট কিওয়ার্ড (ঐচ্ছিক)</label>
+        <input type="text" id="custKeyword" placeholder="যেমন: ঢাকা বিশ্ববিদ্যালয় ভর্তি">
+      </div>
+      <div>
+        <label for="custChannel">চ্যানেল/পেজের নাম (ঐচ্ছিক)</label>
+        <input type="text" id="custChannel" placeholder="যেমন: Business Titan">
+      </div>
+      <div>
+        <label for="custTone">টোন</label>
+        <select id="custTone">
+          <option value="স্বাভাবিক">স্বাভাবিক</option>
+          <option value="ফরমাল">ফরমাল</option>
+          <option value="ক্যাজুয়াল/মজার">ক্যাজুয়াল/মজার</option>
+          <option value="অনুপ্রেরণামূলক">অনুপ্রেরণামূলক</option>
+          <option value="জরুরি/আর্জেন্ট">জরুরি/আর্জেন্ট</option>
+        </select>
+      </div>
+      <div>
+        <label for="custLang">আউটপুট ভাষা</label>
+        <select id="custLang">
+          <option value="bn">শুধু বাংলা</option>
+          <option value="en">শুধু ইংরেজি</option>
+          <option value="both">বাংলা + ইংরেজি মিক্স</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <button class="btn-ai" id="generateBtn" disabled>✨ ক্যাপশন, টাইটেল, ব্লগ ও SEO তৈরি করুন</button>
+      <button class="btn-ghost btn-sm" id="resetBtn">🔁 নতুন করে শুরু করুন</button>
+    </div>
+    <div class="gen-progress" id="genProgress"><div class="bar"></div></div>
+    <div class="hint" id="genHint">প্রথমে ধাপ ৩ থেকে ট্রান্সক্রিপ্ট তৈরি করুন।</div>
+    <div id="resultsArea" style="margin-top:18px;"></div>
+
+    <div id="downloadCard" style="display:none; margin-top:20px; border-top:1px solid var(--line); padding-top:18px;">
+      <label style="margin-bottom:12px;">সবকিছু একসাথে ডাউনলোড করুন</label>
+      <div class="download-grid">
+        <button class="btn-ghost btn-sm" id="dlTxt">📄 TXT</button>
+        <button class="btn-ghost btn-sm" id="dlMd">📝 Markdown</button>
+        <button class="btn-ghost btn-sm" id="dlDoc">📃 Word (.doc)</button>
+        <button class="btn-ghost btn-sm" id="dlPdf">🖨️ PDF (প্রিন্ট)</button>
+        <button class="btn-ghost btn-sm" id="copyAllBtn">📋 সব কপি করুন</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const apiKeyInput = $('apiKey');
+const videoInput = $('videoInput');
+const dropZone = $('dropZone');
+const fileName = $('fileName');
+const transcribeBtn = $('transcribeBtn');
+const generateBtn = $('generateBtn');
+const resetBtn = $('resetBtn');
+const genProgress = $('genProgress');
+const progressWrap = $('progressWrap');
+const progressFill = $('progressFill');
+const progressLabel = $('progressLabel');
+const logBox = $('logBox');
+const transcriptArea = $('transcriptArea');
+const transcriptText = $('transcriptText');
+const resultsArea = $('resultsArea');
+const genHint = $('genHint');
+const toast = $('toast');
+const subtitleHint = $('subtitleHint');
+const subtitleEditor = $('subtitleEditor');
+const segmentList = $('segmentList');
+const segCount = $('segCount');
+const downloadCard = $('downloadCard');
+const themeToggle = $('themeToggle');
+const custNiche = $('custNiche');
+const custAudience = $('custAudience');
+const custKeyword = $('custKeyword');
+const custChannel = $('custChannel');
+const custTone = $('custTone');
+const custLang = $('custLang');
+const modelSelect = $('modelSelect');
+
+let videoFile = null;
+let allSegments = [];
+let lastGenerated = null;
+
+function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  themeToggle.textContent = theme === 'light' ? '☀️' : '🌙';
+  localStorage.setItem('vcs_theme', theme);
+}
+applyTheme(localStorage.getItem('vcs_theme') || 'dark');
+themeToggle.addEventListener('click', () => {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+});
+
+apiKeyInput.value = localStorage.getItem('vcs_gcp_key') || '';
+apiKeyInput.addEventListener('input', () => localStorage.setItem('vcs_gcp_key', apiKeyInput.value.trim()));
+
+modelSelect.value = localStorage.getItem('vcs_model') || 'gemini-3.6-flash';
+modelSelect.addEventListener('change', () => localStorage.setItem('vcs_model', modelSelect.value));
+
+custNiche.value = localStorage.getItem('vcs_niche') || '';
+custAudience.value = localStorage.getItem('vcs_audience') || '';
+custKeyword.value = localStorage.getItem('vcs_keyword') || '';
+custChannel.value = localStorage.getItem('vcs_channel') || '';
+custTone.value = localStorage.getItem('vcs_tone') || 'স্বাভাবিক';
+custLang.value = localStorage.getItem('vcs_lang') || 'bn';
+custNiche.addEventListener('input', () => localStorage.setItem('vcs_niche', custNiche.value.trim()));
+custAudience.addEventListener('input', () => localStorage.setItem('vcs_audience', custAudience.value.trim()));
+custKeyword.addEventListener('input', () => localStorage.setItem('vcs_keyword', custKeyword.value.trim()));
+custChannel.addEventListener('input', () => localStorage.setItem('vcs_channel', custChannel.value.trim()));
+custTone.addEventListener('change', () => localStorage.setItem('vcs_tone', custTone.value));
+custLang.addEventListener('change', () => localStorage.setItem('vcs_lang', custLang.value));
+
+function getCustomization(){
+  return {
+    niche: custNiche.value.trim(),
+    audience: custAudience.value.trim(),
+    keyword: custKeyword.value.trim(),
+    channel: custChannel.value.trim(),
+    tone: custTone.value,
+    lang: custLang.value
+  };
+}
+function customizationLines(c){
+  const lines = [];
+  if(c.niche) lines.push(`ভিডিওর নিশ/ক্যাটাগরি: ${c.niche}`);
+  if(c.audience) lines.push(`টার্গেট অডিয়েন্স: ${c.audience}`);
+  if(c.keyword) lines.push(`এই টার্গেট কিওয়ার্ডটি যতটা সম্ভব স্বাভাবিকভাবে ব্যবহার করো: "${c.keyword}"`);
+  if(c.channel) lines.push(`চ্যানেল/পেজের নাম: ${c.channel} — Subscribe/Follow করার আহ্বানে এই নামটি ব্যবহার করো`);
+  if(c.tone && c.tone !== 'স্বাভাবিক') lines.push(`লেখার টোন হতে হবে: ${c.tone}`);
+  if(c.lang === 'en') lines.push('পুরো আউটপুট ইংরেজিতে লেখো (বাংলায় নয়)।');
+  else if(c.lang === 'both') lines.push('আউটপুটে বাংলা ও ইংরেজি স্বাভাবিকভাবে মিশিয়ে লেখো (যেভাবে বাংলাদেশি কনটেন্ট ক্রিয়েটররা লেখেন)।');
+  return lines.length ? '\n\nবাড়তি নির্দেশনা:\n- ' + lines.join('\n- ') : '';
+}
+
+function showToast(msg){
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'), 2200);
+}
+function setStep(n){
+  for(let i=1;i<=4;i++) $('step'+i).classList.toggle('active', i===n);
+}
+function log(msg, isErr){
+  const d = document.createElement('div');
+  d.textContent = msg;
+  if(isErr) d.classList.add('err');
+  logBox.appendChild(d);
+  logBox.scrollTop = logBox.scrollHeight;
+}
+function downloadBlob(filename, content, mime){
+  const blob = new Blob([content], {type:mime});
+  downloadActualBlob(filename, blob);
+}
+function downloadActualBlob(filename, blob){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+
+function handleFileSelected(file){
+  if(!file) return;
+  videoFile = file;
+  const sizeMB = videoFile.size/1024/1024;
+  fileName.textContent = '✓ ' + videoFile.name + '  (' + sizeMB.toFixed(1) + ' MB)';
+  setStep(2);
+  const isImage = videoFile.type.startsWith('image/');
+  transcribeBtn.textContent = isImage ? '▶ ছবি বিশ্লেষণ শুরু করুন' : '▶ ট্রান্সক্রিপ্ট শুরু করুন';
+  if(sizeMB > 500){
+    showToast('ফাইলটি বেশ বড় (' + sizeMB.toFixed(0) + ' MB) — আপলোড ও প্রসেসিং-এ বেশি সময় লাগতে পারে');
+  }
+}
+
+dropZone.addEventListener('click', () => videoInput.click());
+videoInput.addEventListener('change', (e) => {
+  if(e.target.files && e.target.files[0]) handleFileSelected(e.target.files[0]);
+});
+
+['dragenter','dragover'].forEach(evt => {
+  dropZone.addEventListener(evt, (e) => {
+    e.preventDefault(); e.stopPropagation();
+    dropZone.classList.add('drag-over');
+  });
+});
+['dragleave','drop'].forEach(evt => {
+  dropZone.addEventListener(evt, (e) => {
+    e.preventDefault(); e.stopPropagation();
+    dropZone.classList.remove('drag-over');
+  });
+});
+dropZone.addEventListener('drop', (e) => {
+  const dt = e.dataTransfer;
+  if(dt && dt.files && dt.files[0]){
+    videoInput.files = dt.files;
+    handleFileSelected(dt.files[0]);
+  }
+});
+
+function GEMINI_MODEL(){ return modelSelect.value || 'gemini-3.6-flash'; }
+
+$('useTopicBtn').addEventListener('click', () => {
+  const topic = $('manualTopicInput').value.trim();
+  if(!topic){ showToast('আগে টপিক/টেক্সট লিখুন'); return; }
+  videoFile = null;
+  transcriptText.value = topic;
+  transcriptArea.style.display = 'block';
+  generateBtn.disabled = false;
+  genHint.textContent = 'টেক্সট থেকে কনটেন্ট জেনারেট করার জন্য প্রস্তুত — নিচের বাটনে ক্লিক করুন।';
+  subtitleHint.textContent = 'ভিডিও ছাড়া সাবটাইটেল তৈরি করা যায় না — শুধু TXT ডাউনলোড করা যাবে।';
+  $('srtBtn').disabled = true;
+  $('vttBtn').disabled = true;
+  allSegments = [];
+  subtitleEditor.style.display = 'none';
+  setStep(4);
+  showToast('টেক্সট যোগ হয়েছে ✓ — এখন কনটেন্ট জেনারেট করুন');
+});
+
+async function fetchWithRetry(url, options, onRetry){
+  const maxRetries = 3;
+  for(let attempt=0; attempt<=maxRetries; attempt++){
+    const res = await fetch(url, options);
+    if((res.status === 429 || res.status === 503) && attempt < maxRetries){
+      const wait = 1500 * Math.pow(2, attempt);
+      if(onRetry) onRetry(attempt+1, wait);
+      await sleep(wait);
+      continue;
+    }
+    return res;
+  }
+}
+
+function uploadBytesWithProgress(url, file, onProgress){
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    xhr.setRequestHeader('X-Goog-Upload-Offset', '0');
+    xhr.setRequestHeader('X-Goog-Upload-Command', 'upload, finalize');
+    xhr.upload.onprogress = (e) => {
+      if(e.lengthComputable && onProgress) onProgress(e.loaded / e.total);
+    };
+    xhr.onload = () => {
+      let data;
+      try{ data = JSON.parse(xhr.responseText); }catch(e){ data = {}; }
+      if(xhr.status >= 200 && xhr.status < 300) resolve(data);
+      else reject(new Error((data.error && data.error.message) || 'ফাইল আপলোড ব্যর্থ হয়েছে'));
+    };
+    xhr.onerror = () => reject(new Error('নেটওয়ার্ক এরর — আপলোড ব্যর্থ হয়েছে'));
+    xhr.send(file);
+  });
+}
+
+async function uploadFileToGemini(file, apiKey, onProgress){
+  const startRes = await fetch(`https://generativelanguage.googleapis.com/upload/v1beta/files?key=${encodeURIComponent(apiKey)}`, {
+    method: 'POST',
+    headers: {
+      'X-Goog-Upload-Protocol': 'resumable',
+      'X-Goog-Upload-Command': 'start',
+      'X-Goog-Upload-Header-Content-Length': String(file.size),
+      'X-Goog-Upload-Header-Content-Type': file.type || 'video/mp4',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ file: { display_name: file.name } })
+  });
+  if(!startRes.ok){
+    const errData = await startRes.json().catch(()=>({}));
+    throw new Error((errData.error && errData.error.message) || 'আপলোড শুরু করা যায়নি — API key ঠিক আছে কিনা দেখুন।');
+  }
+  const uploadUrl = startRes.headers.get('x-goog-upload-url');
+  if(!uploadUrl) throw new Error('আপলোড URL পাওয়া যায়নি।');
+
+  const uploadData = await uploadBytesWithProgress(uploadUrl, file, onProgress);
+  let fileObj = uploadData.file;
+  if(!fileObj) throw new Error('ফাইল আপলোড ব্যর্থ হয়েছে');
+
+  let tries = 0;
+  while(fileObj.state === 'PROCESSING' && tries < 40){
+    await sleep(3000);
+    tries++;
+    log(`ফাইল প্রসেস হচ্ছে (Google সার্ভারে)... চেষ্টা ${tries}`);
+    if(onProgress) onProgress(1, Math.min(0.9, tries/40));
+    const checkRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/${fileObj.name}?key=${encodeURIComponent(apiKey)}`);
+    const checkData = await checkRes.json();
+    if(!checkRes.ok) throw new Error((checkData.error && checkData.error.message) || 'ফাইল স্ট্যাটাস চেক ব্যর্থ হয়েছে');
+    fileObj = checkData;
+  }
+  if(fileObj.state !== 'ACTIVE'){
+    throw new Error('ফাইল প্রসেসিং সম্পন্ন হয়নি (state: ' + fileObj.state + ')। আবার চেষ্টা করুন।');
+  }
+  return fileObj;
+}
+
+function buildTranscribePrompt(isImage){
+  if(isImage){
+    return `তুমি একজন অভিজ্ঞ বাংলাদেশি কনটেন্ট স্ট্র্যাটেজিস্ট। এই ছবিটি মনোযোগ দিয়ে দেখো এবং এর বিষয়বস্তু, দৃশ্য, লেখা (যদি ছবিতে কোনো টেক্সট থাকে), প্রসঙ্গ ও সম্ভাব্য বার্তা বাংলায় বিস্তারিতভাবে বর্ণনা করো — যাতে এই বর্ণনার ভিত্তিতে পরে সোশ্যাল মিডিয়া ক্যাপশন ও SEO কনটেন্ট বানানো যায়। JSON স্কিমা অনুযায়ী উত্তর দাও।`;
+  }
+  return `তুমি একজন বাংলা স্পিচ-টু-টেক্সট বিশেষজ্ঞ। এই ভিডিও/অডিওটি মনোযোগ দিয়ে শুনে সম্পূর্ণ, নির্ভুল বাংলা ট্রান্সক্রিপ্ট (verbatim, স্বাভাবিক বিরতিচিহ্নসহ) তৈরি করো। এর পাশাপাশি সাবটাইটেলের জন্য প্রতি ৩-৫ শব্দ পরপর (স্বাভাবিক থামা/শ্বাসের জায়গা অনুযায়ী) একটি করে ছোট সাবটাইটেল সেগমেন্ট তৈরি করো — কোনো সেগমেন্ট যেন ৬টি শব্দের বেশি না হয় এবং ৩ সেকেন্ডের বেশি দীর্ঘ না হয়, যাতে স্ক্রিনে পড়তে সুবিধা হয়। প্রতিটির শুরু ও শেষ সময় mm:ss অথবা hh:mm:ss ফরম্যাটে দাও। এতে যদি বাংলা ছাড়া অন্য ভাষা থাকে, সেটাও বাংলা লিপিতে/অনুবাদ করে লিখো। JSON স্কিমা অনুযায়ী উত্তর দাও।`;
+}
+
+async function transcribeVideo(file, apiKey){
+  const isImage = file.type.startsWith('image/');
+  log(isImage ? 'ছবি Google-এ আপলোড হচ্ছে...' : 'ফাইল Google-এ আপলোড হচ্ছে...');
+  progressLabel.textContent = isImage ? 'ছবি আপলোড হচ্ছে... 0%' : 'ফাইল আপলোড হচ্ছে... 0%';
+  progressFill.style.width = '2%';
+
+  const fileObj = await uploadFileToGemini(file, apiKey, (uploadFrac, pollFrac) => {
+    if(pollFrac === undefined){
+      const pct = 2 + uploadFrac*63; // 2% -> 65% during actual byte upload
+      progressFill.style.width = pct.toFixed(0) + '%';
+      progressLabel.textContent = (isImage ? 'ছবি আপলোড হচ্ছে... ' : 'ফাইল আপলোড হচ্ছে... ') + Math.round(uploadFrac*100) + '%';
+    }else{
+      const pct = 65 + pollFrac*20; // 65% -> 85% while Google processes the upload
+      progressFill.style.width = pct.toFixed(0) + '%';
+      progressLabel.textContent = 'সার্ভারে প্রসেস হচ্ছে...';
+    }
+  });
+  log('আপলোড সম্পন্ন, ফাইল রেডি ✓');
+  progressLabel.textContent = isImage ? 'বিশ্লেষণ হচ্ছে (Gemini দেখছে)...' : 'ট্রান্সক্রাইব হচ্ছে (Gemini শুনছে)...';
+  progressFill.style.width = '87%';
+
+  const schema = isImage
+    ? { type: 'OBJECT', properties: { transcript: { type: 'STRING' } }, required: ['transcript'] }
+    : {
+        type: 'OBJECT',
+        properties: {
+          transcript: { type: 'STRING' },
+          segments: {
+            type: 'ARRAY',
+            items: {
+              type: 'OBJECT',
+              properties: {
+                start: { type: 'STRING' },
+                end: { type: 'STRING' },
+                text: { type: 'STRING' }
+              },
+              required: ['start','end','text']
+            }
+          }
+        },
+        required: ['transcript','segments']
+      };
+
+  const genRes = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL()}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{
+        parts: [
+          { text: buildTranscribePrompt(isImage) },
+          { file_data: { mime_type: fileObj.mimeType, file_uri: fileObj.uri } }
+        ]
+      }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        maxOutputTokens: 24576,
+        responseSchema: schema
+      }
+    })
+  }, (n, wait) => log(`রেট লিমিটে পড়েছে, ${(wait/1000).toFixed(0)}s পর আবার চেষ্টা (${n})...`));
+  const genData = await genRes.json();
+  if(!genRes.ok){
+    throw new Error((genData.error && genData.error.message) || 'ট্রান্সক্রিপশন ব্যর্থ হয়েছে');
+  }
+  const candidate = genData.candidates && genData.candidates[0];
+  const textOut = candidate && candidate.content && candidate.content.parts
+    ? candidate.content.parts.map(p => p.text || '').join('')
+    : '';
+  if(!textOut) throw new Error('Gemini থেকে কোনো আউটপুট পাওয়া যায়নি।');
+  progressFill.style.width = '95%';
+  let parsed;
+  try{
+    parsed = JSON.parse(textOut);
+  }catch(e){
+    log('JSON পার্স ব্যর্থ হয়েছে — raw আউটপুট নিচে দেখানো হলো:', true);
+    log(textOut.slice(0, 2000));
+    throw new Error('ফলাফল পার্স করা যায়নি। উপরের লগে raw আউটপুট দেখুন, প্রয়োজনে আবার চেষ্টা করুন।');
+  }
+  log('ট্রান্সক্রিপশন সম্পন্ন ✓');
+  progressFill.style.width = '100%';
+  return { transcript: (parsed.transcript || '').trim(), segments: parsed.segments || [] };
+}
+
+transcribeBtn.addEventListener('click', async () => {
+  const apiKey = apiKeyInput.value.trim();
+  if(!apiKey){ showToast('আগে Gemini API Key দিন'); return; }
+  if(!videoFile){ showToast('আগে একটি ভিডিও আপলোড করুন'); return; }
+
+  transcribeBtn.disabled = true;
+  progressWrap.style.display = 'block';
+  logBox.innerHTML = '';
+  progressFill.style.width = '0%';
+  setStep(3);
+
+  try{
+    const { transcript, segments } = await transcribeVideo(videoFile, apiKey);
+    allSegments = segments;
+    if(!transcript){
+      log('কোনো লেখা পাওয়া যায়নি — ভিডিওতে স্পষ্ট কথা আছে কিনা দেখুন।', true);
+      showToast('ট্রান্সক্রিপ্ট খালি এসেছে');
+    }else{
+      transcriptText.value = transcript;
+      transcriptArea.style.display = 'block';
+      generateBtn.disabled = false;
+      genHint.textContent = 'ট্রান্সক্রিপ্ট প্রস্তুত। এবার নিচের বাটনে ক্লিক করে কনটেন্ট জেনারেট করুন।';
+      progressLabel.textContent = 'সম্পন্ন ✓';
+      subtitleHint.textContent = segments.length ? '' : 'সাবটাইটেল টাইমিং পাওয়া যায়নি এই ভিডিওর জন্য — শুধু TXT ডাউনলোড করা যাবে।';
+      $('srtBtn').disabled = segments.length === 0;
+      $('vttBtn').disabled = segments.length === 0;
+      subtitleEditor.style.display = segments.length ? 'block' : 'none';
+      if(segments.length) renderSubtitleEditor();
+      showToast('ট্রান্সক্রিপ্ট তৈরি হয়েছে');
+      setStep(4);
+    }
+  }catch(err){
+    log('এরর: ' + err.message, true);
+    showToast('সমস্যা হয়েছে — নিচের লগ দেখুন');
+  }finally{
+    transcribeBtn.disabled = false;
+  }
+});
+
+function pad(n, len){ len = len||2; return String(Math.floor(n)).padStart(len,'0'); }
+function srtTimestamp(sec){
+  const h = Math.floor(sec/3600);
+  const m = Math.floor((sec%3600)/60);
+  const s = Math.floor(sec%60);
+  const ms = Math.round((sec - Math.floor(sec))*1000);
+  return `${pad(h)}:${pad(m)}:${pad(s)},${pad(ms,3)}`;
+}
+function vttTimestamp(sec){
+  const h = Math.floor(sec/3600);
+  const m = Math.floor((sec%3600)/60);
+  const s = Math.floor(sec%60);
+  const ms = Math.round((sec - Math.floor(sec))*1000);
+  return `${pad(h)}:${pad(m)}:${pad(s)}.${pad(ms,3)}`;
+}
+function parseTimeToSeconds(t){
+  if(!t) return 0;
+  const parts = String(t).split(':').map(Number);
+  if(parts.length === 3) return parts[0]*3600 + parts[1]*60 + parts[2];
+  if(parts.length === 2) return parts[0]*60 + parts[1];
+  return Number(t) || 0;
+}
+function segmentsToCues(segments){
+  return segments.map(s => ({
+    start: parseTimeToSeconds(s.start),
+    end: parseTimeToSeconds(s.end),
+    text: s.text
+  }));
+}
+function toSRT(cues){
+  return cues.map((c,i)=>`${i+1}\n${srtTimestamp(c.start)} --> ${srtTimestamp(c.end)}\n${c.text}\n`).join('\n');
+}
+function toVTT(cues){
+  return 'WEBVTT\n\n' + cues.map(c=>`${vttTimestamp(c.start)} --> ${vttTimestamp(c.end)}\n${c.text}\n`).join('\n');
+}
+function formatHMS(sec){
+  const h = Math.floor(sec/3600);
+  const m = Math.floor((sec%3600)/60);
+  const s = Math.floor(sec%60);
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+function normalizeTimeInput(val, fallbackSeconds){
+  const sec = parseTimeToSeconds(val);
+  if(isNaN(sec) || sec < 0){
+    showToast('সঠিক ফরম্যাটে সময় দিন (hh:mm:ss)');
+    return formatHMS(fallbackSeconds);
+  }
+  return formatHMS(sec);
+}
+function renderSubtitleEditor(){
+  segmentList.innerHTML = '';
+  allSegments.forEach((seg, idx) => {
+    const row = document.createElement('div');
+    row.className = 'seg-row';
+    row.innerHTML = `
+      <div class="seg-index">#${idx+1}</div>
+      <div class="seg-times">
+        <input type="text" class="seg-start" value="${escapeHtml(seg.start)}" placeholder="00:00:00">
+        <input type="text" class="seg-end" value="${escapeHtml(seg.end)}" placeholder="00:00:02">
+      </div>
+      <div class="seg-text"><textarea class="seg-text-input">${escapeHtml(seg.text)}</textarea></div>
+      <button class="seg-del" title="মুছে ফেলুন">✕</button>
+    `;
+    const startInput = row.querySelector('.seg-start');
+    const endInput = row.querySelector('.seg-end');
+    startInput.addEventListener('change', () => {
+      allSegments[idx].start = normalizeTimeInput(startInput.value, parseTimeToSeconds(allSegments[idx].start));
+      startInput.value = allSegments[idx].start;
+    });
+    endInput.addEventListener('change', () => {
+      allSegments[idx].end = normalizeTimeInput(endInput.value, parseTimeToSeconds(allSegments[idx].end));
+      endInput.value = allSegments[idx].end;
+    });
+    row.querySelector('.seg-text-input').addEventListener('input', (e) => {
+      allSegments[idx].text = e.target.value;
+    });
+    row.querySelector('.seg-del').addEventListener('click', () => {
+      allSegments.splice(idx, 1);
+      renderSubtitleEditor();
+      showToast('সেগমেন্ট মুছে ফেলা হয়েছে');
+    });
+    segmentList.appendChild(row);
+  });
+  segCount.textContent = allSegments.length;
+}
+$('addSegBtn').addEventListener('click', () => {
+  const last = allSegments[allSegments.length - 1];
+  const startSec = last ? parseTimeToSeconds(last.end) : 0;
+  allSegments.push({ start: formatHMS(startSec), end: formatHMS(startSec + 2), text: '' });
+  renderSubtitleEditor();
+  segmentList.scrollTop = segmentList.scrollHeight;
+});
+$('sortSegBtn').addEventListener('click', () => {
+  allSegments.sort((a,b) => parseTimeToSeconds(a.start) - parseTimeToSeconds(b.start));
+  renderSubtitleEditor();
+  showToast('সময় অনুযায়ী সাজানো হয়েছে');
+});
+
+$('srtBtn').addEventListener('click', () => {
+  if(!allSegments.length){ showToast('সাবটাইটেল টাইমিং নেই'); return; }
+  const cues = segmentsToCues(allSegments);
+  downloadBlob('subtitle.srt', toSRT(cues), 'text/plain');
+  showToast('SRT ডাউনলোড হচ্ছে');
+});
+$('vttBtn').addEventListener('click', () => {
+  if(!allSegments.length){ showToast('সাবটাইটেল টাইমিং নেই'); return; }
+  const cues = segmentsToCues(allSegments);
+  downloadBlob('subtitle.vtt', toVTT(cues), 'text/vtt');
+  showToast('VTT ডাউনলোড হচ্ছে');
+});
+$('txtBtn').addEventListener('click', () => {
+  downloadBlob('transcript.txt', transcriptText.value, 'text/plain');
+  showToast('TXT ডাউনলোড হচ্ছে');
+});
+
+function buildSegmentDigest(segments){
+  if(!segments || !segments.length) return '';
+  const step = Math.max(1, Math.ceil(segments.length / 40));
+  const picked = [];
+  for(let i=0; i<segments.length; i+=step) picked.push(segments[i]);
+  return picked.map(s => `${s.start} ${s.text}`).join('\n');
+}
+
+function buildPrompt(transcript, custom, segments){
+  const digest = buildSegmentDigest(segments);
+  const chaptersBlock = digest
+    ? `\n\nভিডিওর সময়-চিহ্নিত অংশসমূহ (সময় শব্দ):\n"""${digest}"""\n\nউপরের সময়-চিহ্ন দেখে ভিডিওটিকে ৪-৮টি যৌক্তিক অংশে ভাগ করে ইউটিউব চ্যাপ্টার বানাও। প্রথম চ্যাপ্টার অবশ্যই "00:00" থেকে শুরু হবে।`
+    : '';
+  const chaptersField = digest
+    ? `,\n  "chapters": [ { "time": "00:00", "label": "সংক্ষিপ্ত চ্যাপ্টার নাম (২-৪ শব্দ)" }, { "time": "mm:ss", "label": "..." } ]`
+    : '';
+  return `তুমি একজন অভিজ্ঞ বাংলাদেশি ইউটিউব/সোশ্যাল মিডিয়া কনটেন্ট স্ট্র্যাটেজিস্ট ও SEO বিশেষজ্ঞ। নিচের ভিডিও ট্রান্সক্রিপ্ট পড়ে তার ভিত্তিতে সংক্ষিপ্ত অথচ কার্যকর কনটেন্ট তৈরি করো, যাতে ভিডিওটি ইউটিউব/ফেসবুক সার্চ ও রিকমেন্ডেশনে বেশি মানুষের কাছে পৌঁছায়। প্রতিটি ফিল্ড সংক্ষিপ্ত রাখো, কারণ মোট আউটপুট সীমিত।
+
+ট্রান্সক্রিপ্ট:
+"""${transcript.slice(0,5000)}"""
+${customizationLines(custom || {})}${chaptersBlock}
+
+শুধুমাত্র নিচের কাঠামোয় বিশুদ্ধ JSON আউটপুট দাও, অন্য কোনো লেখা, ব্যাখ্যা বা মার্কডাউন ব্যাকটিক দিও না:
+
+{
+  "titles": ["SEO টাইটেল ১", "টাইটেল ২", "টাইটেল ৩", "টাইটেল ৪", "টাইটেল ৫"],
+  "description": "ইউটিউব বিবরণ, নিচের কাঠামো অনুসরণ করে বাংলায় লেখো (মোট ১৫০-২২০ শব্দ, প্রতিটি অংশের মাঝে খালি লাইন রেখো): (১) একটি আকর্ষণীয় হুক লাইন/অনুচ্ছেদ দিয়ে শুরু করো যাতে মূল কিওয়ার্ড থাকে; (২) '✅' চিহ্ন দিয়ে ৪-৬টি বুলেট পয়েন্টে বলো এই ভিডিও/প্রোডাক্ট থেকে দর্শক কী কী পাবে; (৩) 'এই ভিডিওতে জানতে পারবেন—' লাইন লিখে তার নিচে ৩-৫টি লাইনে মূল বিষয়বস্তু তালিকা করো; (৪) '🎯' দিয়ে একটি লাইনে বলো এই ভিডিওটি ঠিক কাদের জন্য প্রাসঙ্গিক (টার্গেট অডিয়েন্স/প্রাসঙ্গিক প্রতিষ্ঠান/পরীক্ষা/এলাকা উল্লেখ করে); (৫) '👍' দিয়ে Like/Share/Comment করার আহ্বান জানাও; (৬) '🔔' দিয়ে চ্যানেল Subscribe করার আহ্বান জানাও (চ্যানেলের নাম দেওয়া থাকলে সেটা ব্যবহার করো, না থাকলে সাধারণভাবে লেখো); (৭) সবশেষে ঠিক 'Keywords: ' দিয়ে শুরু করে কমা দিয়ে আলাদা করা ১৫-২০টি প্রাসঙ্গিক কিওয়ার্ড/ফ্রেজ (বাংলা ও ইংরেজি স্বাভাবিকভাবে মিশিয়ে) দাও।",
+  "tags": ["ইউটিউব ট্যাগ ১", "... মোট ১২-১৫টি"],
+  "hashtags": ["#হ্যাশট্যাগ১", "... মোট ১৫-২০টি, ইউটিউব বিবরণের শেষে বসানোর মতো"],
+  "facebook_caption": ["ফেসবুক ক্যাপশন অপশন ১ — প্রথম লাইনে শক্তিশালী হুক (প্রশ্ন/চমকপ্রদ দাবি/সংখ্যা দিয়ে), তারপর লাইন ব্রেক দিয়ে ২-৩টি ছোট লাইনে মূল বিষয় বা উপকারিতা, শেষে একটা নরম CTA (কমেন্ট/শেয়ার/সেভ করতে বলা), প্রাসঙ্গিক ইমোজি ব্যবহার করো, একদম শেষে ২-৩টি প্রাসঙ্গিক হ্যাশট্যাগ", "অপশন ২ — ভিন্ন হুক স্টাইলে (যেমন গল্প আকারে শুরু)", "অপশন ৩ — ভিন্ন স্টাইলে (যেমন লিস্ট/পয়েন্ট আকারে)", "অপশন ৪ — জরুরি/আর্জেন্সি ভাব নিয়ে", "অপশন ৫ বা ৬ — আবেগঘন/সম্পর্কিত অভিজ্ঞতা ভিত্তিক (৫-৬টি মোট, প্রতিটি একে অপরের থেকে স্পষ্ট ভিন্ন)"],
+  "instagram_caption": ["ইনস্টাগ্রাম ক্যাপশন অপশন ১ — প্রথম লাইনেই সবচেয়ে আকর্ষণীয় হুক (ইনস্টাগ্রামে ক্যাপশন কাটা যায়, তাই প্রথম ৭-৮ শব্দ সবচেয়ে গুরুত্বপূর্ণ), তারপর ছোট ছোট লাইনে ২-৩ লাইন বিবরণ, ইমোজি ব্যবহার করো, শেষে একটা CTA (সেভ/শেয়ার/কমেন্ট), একদম শেষে ৫-৭টি প্রাসঙ্গিক হ্যাশট্যাগ (মিশ্র জনপ্রিয়তার — কিছু বড়, কিছু নিশ-স্পেসিফিক)", "অপশন ২ — ভিন্ন হুক স্টাইলে", "অপশন ৩ — ভিন্ন স্টাইলে (মিনিমাল/এসথেটিক টোনে)", "অপশন ৪ — প্রশ্ন দিয়ে এনগেজমেন্ট বাড়ানোর স্টাইলে", "অপশন ৫ বা ৬ (৫-৬টি মোট, প্রতিটি একে অপরের থেকে স্পষ্ট ভিন্ন)"],
+  "shorts_caption": ["শর্টস/রিলসের জন্য এক লাইনের অতি সংক্ষিপ্ত (সর্বোচ্চ ৮-১০ শব্দ), উচ্চ কৌতূহল-জাগানো, চমকদার ক্যাপশন অপশন ১ (কোনো ব্যাখ্যা না দিয়ে সরাসরি হুক, প্রয়োজনে ১টা ইমোজি)", "অপশন ২ — সংখ্যা/পরিসংখ্যান ব্যবহার করে", "অপশন ৩ — প্রশ্ন আকারে", "অপশন ৪ — চ্যালেঞ্জ/দাবি আকারে", "অপশন ৫ বা ৬ (৫-৬টি মোট, প্রতিটি ভিন্ন স্টাইলে)"],
+  "linkedin_post": "লিংকডইন পোস্ট (পেশাদার টোন, ৫০-৭০ শব্দ)",
+  "x_post": "X (Twitter) পোস্ট, ২৮০ ক্যারেক্টারের মধ্যে",
+  "thumbnail_texts": ["থাম্বনেইলের জন্য ৩-৫ শব্দের টেক্সট আইডিয়া ১", "আইডিয়া ২", "আইডিয়া ৩"],
+  "cta": "ভিডিওর শেষে বলার মতো একটি কল-টু-অ্যাকশন লাইন",
+  "meta_description": "মেটা বিবরণ, সর্বোচ্চ ১৫৫ ক্যারেক্টার",
+  "search_intent": "এই ভিডিওর দর্শক মূলত কী খুঁজছে তার এক লাইন সারাংশ",
+  "seo_tips": "টাইটেল/ট্যাগ/বিবরণ কীভাবে ব্যবহার করলে ভালো র‍্যাঙ্ক করবে তার উপর ৩টি সংক্ষিপ্ত পরামর্শ",
+  "blog_article": "এই ভিডিওর বিষয়বস্তুর উপর ভিত্তি করে ১৫০-২০০ শব্দের একটি ছোট ব্লগ আর্টিকেল, শিরোনামসহ"${chaptersField}
+}`;
+}
+
+async function generateContent(transcript, apiKey, custom, segments){
+  const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL()}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: buildPrompt(transcript, custom, segments) }] }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        maxOutputTokens: 6144
+      }
+    })
+  }, (n) => showToast('রেট লিমিটে পড়েছে, আবার চেষ্টা করা হচ্ছে... (' + n + ')'));
+  const data = await response.json();
+  if(!response.ok){
+    throw new Error((data.error && data.error.message) || 'কনটেন্ট জেনারেট ব্যর্থ হয়েছে');
+  }
+  const candidate = data.candidates && data.candidates[0];
+  const textOut = candidate && candidate.content && candidate.content.parts
+    ? candidate.content.parts.map(p => p.text || '').join('')
+    : '';
+  if(!textOut) throw new Error('Gemini থেকে কোনো আউটপুট পাওয়া যায়নি।');
+  const clean = textOut.replace(/```json|```/g, '').trim();
+  try{
+    return JSON.parse(clean);
+  }catch(e){
+    const err = new Error('JSON পার্স করা যায়নি — মডেলের আউটপুট ফরম্যাট ঠিক ছিল না। নিচে raw আউটপুট দেখানো হলো, চাইলে কপি করে নিন এবং আবার চেষ্টা করুন।');
+    err.raw = textOut;
+    throw err;
+  }
+}
+
+let fieldHistory = {};
+
+function block(container, title, bodyHtml, copyText, regenKey){
+  const wrap = document.createElement('div');
+  wrap.className = 'result-block';
+  const hasHistory = regenKey && fieldHistory[regenKey] !== undefined;
+  wrap.innerHTML = `
+    <div class="rb-head">
+      <div class="rb-title">${title}</div>
+      <div class="row" style="gap:6px;">
+        ${hasHistory ? '<button class="copy-btn undo-btn">↩ আগের ভার্সন</button>' : ''}
+        ${regenKey ? '<button class="copy-btn regen-btn">🔄 আবার জেনারেট</button>' : ''}
+        <button class="copy-btn">কপি করুন</button>
+      </div>
+    </div>
+    <div class="rb-body"></div>
+  `;
+  wrap.querySelector('.rb-body').innerHTML = bodyHtml;
+  wrap.querySelector('.copy-btn:last-child').addEventListener('click', () => {
+    navigator.clipboard.writeText(copyText).then(()=>showToast('কপি হয়েছে ✓'));
+  });
+  if(regenKey){
+    wrap.querySelector('.regen-btn').addEventListener('click', (e) => regenerateField(regenKey, e.target));
+  }
+  if(hasHistory){
+    wrap.querySelector('.undo-btn').addEventListener('click', () => {
+      lastGenerated[regenKey] = fieldHistory[regenKey];
+      delete fieldHistory[regenKey];
+      renderResults(lastGenerated);
+      showToast('আগের ভার্সনে ফিরিয়ে নেওয়া হয়েছে');
+    });
+  }
+  container.appendChild(wrap);
+}
+
+function numberedList(arr){ return arr.map((t,i)=>`${i+1}. ${t}`).join('\n'); }
+const HOOK_EMOTION_WORDS = ['ভয়ংকর','অবিশ্বাস্য','গোপন','রহস্য','চমকে','সেরা','ফ্রি','মাস্ট','জানলে','শকিং','সতর্ক','ভুল','সত্যি','আসল','ভাইরাল','shocking','secret','amazing','free','best','proven','warning','never','stop','mistake'];
+function hookHints(text){
+  const hints = [];
+  if(/\?/.test(text)) hints.push('❓প্রশ্ন');
+  if(/\d/.test(text)) hints.push('🔢সংখ্যা');
+  if(/!/.test(text)) hints.push('❗জোর');
+  const lower = text.toLowerCase();
+  if(HOOK_EMOTION_WORDS.some(w => lower.includes(w))) hints.push('💥শব্দ');
+  return hints;
+}
+function hookBadge(text){
+  const hints = hookHints(text);
+  const strength = hints.length;
+  const color = strength >= 2 ? 'var(--ai)' : (strength === 1 ? 'var(--warn)' : 'var(--muted)');
+  const label = strength >= 2 ? 'শক্তিশালী হুক' : (strength === 1 ? 'মাঝারি হুক' : 'দুর্বল হুক');
+  return ` <span style="font-size:10px; color:${color}; border:1px solid ${color}; border-radius:8px; padding:1px 6px;">${label}${hints.length ? ' · ' + hints.join(' ') : ''}</span>`;
+}
+function numberedListWithHook(arr){
+  return arr.map((t,i)=>`${i+1}. ${t}${hookBadge(t)}`).join('<br>');
+}
+function numberedListWithCount(arr, limit){
+  return arr.map((t,i)=>{
+    const len = t.length;
+    const over = len > limit;
+    return `${i+1}. ${t}  <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:${over ? 'var(--rec)' : 'var(--muted)'};">(${len}/${limit})</span>${hookBadge(t)}`;
+  }).join('<br>');
+}
+function charCount(str, limit){
+  const len = (str||'').length;
+  const over = len > limit;
+  return `<span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:${over ? 'var(--rec)' : 'var(--muted)'};">${len}/${limit}</span>`;
+}
+
+function renderResults(obj){
+  resultsArea.innerHTML = '';
+  if(obj.titles) block(resultsArea, '🎬 ইউটিউব টাইটেল অপশন (প্রতিটি সর্বোচ্চ ১০০ ক্যারেক্টার)', numberedListWithCount(obj.titles, 100), numberedList(obj.titles), 'titles');
+  if(obj.description) block(resultsArea, '📝 ইউটিউব বিবরণ', obj.description, obj.description, 'description');
+  if(obj.tags){
+    const pills = `<div class="tags-list">${obj.tags.map(t=>`<span class="tag-pill">${t}</span>`).join('')}</div>`;
+    block(resultsArea, `🏷️ ইউটিউব ট্যাগ / কিওয়ার্ড (মোট ${charCount(obj.tags.join(', '), 500)})`, pills, obj.tags.join(', '), 'tags');
+  }
+  if(obj.hashtags){
+    const pills = `<div class="tags-list">${obj.hashtags.map(t=>`<span class="tag-pill">${t}</span>`).join('')}</div>`;
+    block(resultsArea, '# হ্যাশট্যাগ', pills, obj.hashtags.join(' '), 'hashtags');
+  }
+  if(obj.facebook_caption){
+    const arr = Array.isArray(obj.facebook_caption) ? obj.facebook_caption : [obj.facebook_caption];
+    block(resultsArea, '📘 ফেসবুক ক্যাপশন (একাধিক অপশন)', numberedListWithHook(arr), numberedList(arr), 'facebook_caption');
+  }
+  if(obj.instagram_caption){
+    const arr = Array.isArray(obj.instagram_caption) ? obj.instagram_caption : [obj.instagram_caption];
+    block(resultsArea, '📷 ইনস্টাগ্রাম ক্যাপশন (একাধিক অপশন)', numberedListWithHook(arr), numberedList(arr), 'instagram_caption');
+  }
+  if(obj.shorts_caption){
+    const arr = Array.isArray(obj.shorts_caption) ? obj.shorts_caption : [obj.shorts_caption];
+    block(resultsArea, '🎞️ শর্টস/রিলস ক্যাপশন (একাধিক অপশন)', numberedListWithHook(arr), numberedList(arr), 'shorts_caption');
+  }
+  if(obj.linkedin_post) block(resultsArea, '💼 লিংকডইন পোস্ট', obj.linkedin_post, obj.linkedin_post, 'linkedin_post');
+  if(obj.x_post) block(resultsArea, `✖️ X (Twitter) পোস্ট (${obj.x_post.length}/280 ক্যারেক্টার)`, obj.x_post, obj.x_post, 'x_post');
+  if(obj.thumbnail_texts) block(resultsArea, '🖼️ থাম্বনেইল কপি আইডিয়া', numberedList(obj.thumbnail_texts), numberedList(obj.thumbnail_texts), 'thumbnail_texts');
+  if(obj.cta) block(resultsArea, '📣 কল-টু-অ্যাকশন (CTA)', obj.cta, obj.cta, 'cta');
+  if(obj.meta_description) block(resultsArea, `🔎 মেটা বিবরণ (${obj.meta_description.length}/155 ক্যারেক্টার)`, obj.meta_description, obj.meta_description, 'meta_description');
+  if(obj.search_intent) block(resultsArea, '🎯 সার্চ ইনটেন্ট', obj.search_intent, obj.search_intent, 'search_intent');
+  if(obj.seo_tips) block(resultsArea, '📈 SEO পরামর্শ', obj.seo_tips, obj.seo_tips, 'seo_tips');
+  if(obj.blog_article) block(resultsArea, '📰 ব্লগ আর্টিকেল', obj.blog_article, obj.blog_article, 'blog_article');
+}
+
+function bundleAsText(obj){
+  let out = '';
+  const add = (title, val) => { if(val){ out += `== ${title} ==\n${Array.isArray(val)?val.join('\n'):val}\n\n`; } };
+  add('ইউটিউব টাইটেল', obj.titles);
+  add('ইউটিউব বিবরণ', obj.description);
+  add('ইউটিউব ট্যাগ', obj.tags && obj.tags.join(', '));
+  add('হ্যাশট্যাগ', obj.hashtags && obj.hashtags.join(' '));
+  add('ফেসবুক ক্যাপশন', obj.facebook_caption);
+  add('ইনস্টাগ্রাম ক্যাপশন', obj.instagram_caption);
+  add('শর্টস/রিলস ক্যাপশন', obj.shorts_caption);
+  add('লিংকডইন পোস্ট', obj.linkedin_post);
+  add('X পোস্ট', obj.x_post);
+  add('থাম্বনেইল কপি', obj.thumbnail_texts);
+  add('CTA', obj.cta);
+  add('মেটা বিবরণ', obj.meta_description);
+  add('সার্চ ইনটেন্ট', obj.search_intent);
+  add('SEO পরামর্শ', obj.seo_tips);
+  add('ব্লগ আর্টিকেল', obj.blog_article);
+  return out.trim();
+}
+function bundleAsMarkdown(obj){
+  let out = '# ভিডিও কনটেন্ট প্যাকেজ\n\n';
+  const add = (title, val) => { if(val){ out += `## ${title}\n${Array.isArray(val)? val.map(v=>'- '+v).join('\n') : val}\n\n`; } };
+  add('ইউটিউব টাইটেল', obj.titles);
+  add('ইউটিউব বিবরণ', obj.description);
+  add('ইউটিউব ট্যাগ', obj.tags && obj.tags.join(', '));
+  add('হ্যাশট্যাগ', obj.hashtags && obj.hashtags.join(' '));
+  add('ফেসবুক ক্যাপশন', obj.facebook_caption);
+  add('ইনস্টাগ্রাম ক্যাপশন', obj.instagram_caption);
+  add('শর্টস/রিলস ক্যাপশন', obj.shorts_caption);
+  add('লিংকডইন পোস্ট', obj.linkedin_post);
+  add('X পোস্ট', obj.x_post);
+  add('থাম্বনেইল কপি', obj.thumbnail_texts);
+  add('CTA', obj.cta);
+  add('মেটা বিবরণ', obj.meta_description);
+  add('সার্চ ইনটেন্ট', obj.search_intent);
+  add('SEO পরামর্শ', obj.seo_tips);
+  add('ব্লগ আর্টিকেল', obj.blog_article);
+  return out.trim();
+}
+
+const FIELD_SPECS = {
+  titles: { label: 'ইউটিউব টাইটেল অপশন', instruction: '৫টি ভিন্ন, আকর্ষণীয়, SEO-friendly ইউটিউব টাইটেল দাও, আগেরগুলোর থেকে ভিন্ন স্টাইলে।', shape: '["...", "...", "...", "...", "..."]' },
+  description: { label: 'ইউটিউব বিবরণ', instruction: '৬০-৮০ শব্দের একটি নতুন ইউটিউব বিবরণ দাও, প্রথম লাইনে মূল কিওয়ার্ড ও হুক রেখে, আগেরটার থেকে ভিন্নভাবে লেখা।', shape: '"..."' },
+  tags: { label: 'ইউটিউব ট্যাগ', instruction: '১২-১৫টি নতুন ইউটিউব ট্যাগ/কিওয়ার্ড দাও।', shape: '["...", "..."]' },
+  hashtags: { label: 'হ্যাশট্যাগ', instruction: '৬-৮টি নতুন হ্যাশট্যাগ দাও।', shape: '["#...", "#..."]' },
+  facebook_caption: { label: 'ফেসবুক ক্যাপশন', instruction: '৫-৬টি ভিন্ন ফেসবুক ক্যাপশন অপশন দাও — প্রতিটির প্রথম লাইনে শক্তিশালী হুক, তারপর লাইন ব্রেক দিয়ে ২-৩ লাইনে মূল বিষয়, শেষে CTA ও ২-৩টি হ্যাশট্যাগ। প্রতিটি অপশন একে অপরের থেকে ও আগের ভার্সনগুলোর থেকে স্পষ্ট ভিন্ন স্টাইলে হবে।', shape: '["...", "...", "...", "...", "..."]' },
+  instagram_caption: { label: 'ইনস্টাগ্রাম ক্যাপশন', instruction: '৫-৬টি ভিন্ন ইনস্টাগ্রাম ক্যাপশন অপশন দাও — প্রথম ৭-৮ শব্দেই হুক (কাটা যাওয়ার আগে), ছোট লাইনে বিবরণ, CTA, শেষে ৫-৭টি প্রাসঙ্গিক হ্যাশট্যাগ। আগের ভার্সনগুলোর থেকে স্পষ্ট ভিন্ন।', shape: '["...", "...", "...", "...", "..."]' },
+  shorts_caption: { label: 'শর্টস/রিলস ক্যাপশন', instruction: '৫-৬টি ভিন্ন অতি সংক্ষিপ্ত (সর্বোচ্চ ৮-১০ শব্দ) হাই-কৌতূহল শর্টস/রিলস ক্যাপশন দাও, আগের ভার্সনগুলোর থেকে ভিন্ন স্টাইলে (প্রশ্ন/সংখ্যা/চ্যালেঞ্জ ইত্যাদি মিশিয়ে)।', shape: '["...", "...", "...", "...", "..."]' },
+  linkedin_post: { label: 'লিংকডইন পোস্ট', instruction: '৫০-৭০ শব্দের একটি নতুন পেশাদার-টোনের লিংকডইন পোস্ট দাও।', shape: '"..."' },
+  x_post: { label: 'X (Twitter) পোস্ট', instruction: '২৮০ ক্যারেক্টারের মধ্যে একটি নতুন X পোস্ট দাও।', shape: '"..."' },
+  thumbnail_texts: { label: 'থাম্বনেইল কপি আইডিয়া', instruction: 'থাম্বনেইলের জন্য ৩-৫ শব্দের ৩টি নতুন টেক্সট আইডিয়া দাও।', shape: '["...", "...", "..."]' },
+  cta: { label: 'কল-টু-অ্যাকশন (CTA)', instruction: 'ভিডিওর শেষে বলার মতো একটি নতুন CTA লাইন দাও।', shape: '"..."' },
+  meta_description: { label: 'মেটা বিবরণ', instruction: 'সর্বোচ্চ ১৫৫ ক্যারেক্টারের একটি নতুন মেটা বিবরণ দাও।', shape: '"..."' },
+  search_intent: { label: 'সার্চ ইনটেন্ট', instruction: 'এই ভিডিওর দর্শক মূলত কী খুঁজছে তার এক লাইন নতুন সারাংশ দাও।', shape: '"..."' },
+  seo_tips: { label: 'SEO পরামর্শ', instruction: 'টাইটেল/ট্যাগ/বিবরণ কীভাবে ব্যবহার করলে ভালো র‍্যাঙ্ক করবে তার উপর ৩টি নতুন সংক্ষিপ্ত পরামর্শ দাও।', shape: '"..."' },
+  blog_article: { label: 'ব্লগ আর্টিকেল', instruction: '১৫০-২০০ শব্দের একটি নতুন ছোট ব্লগ আর্টিকেল দাও, শিরোনামসহ।', shape: '"..."' }
+};
+
+async function regenerateField(key, btnEl){
+  const spec = FIELD_SPECS[key];
+  const transcript = transcriptText.value.trim();
+  const apiKey = apiKeyInput.value.trim();
+  if(!spec || !transcript || !apiKey) return;
+  if(btnEl){ btnEl.disabled = true; btnEl.textContent = '...'; }
+  try{
+    const prompt = `তুমি একজন অভিজ্ঞ বাংলাদেশি ইউটিউব/সোশ্যাল মিডিয়া কনটেন্ট স্ট্র্যাটেজিস্ট ও SEO বিশেষজ্ঞ। নিচের ভিডিও ট্রান্সক্রিপ্ট পড়ে শুধুমাত্র "${spec.label}" এর জন্য কনটেন্ট তৈরি করো।
+
+ট্রান্সক্রিপ্ট:
+"""${transcript.slice(0,5000)}"""
+${customizationLines(getCustomization())}
+
+নির্দেশনা: ${spec.instruction}
+
+শুধুমাত্র নিচের কাঠামোয় বিশুদ্ধ JSON দাও, অন্য কোনো লেখা, ব্যাখ্যা বা মার্কডাউন ব্যাকটিক দিও না:
+{ "${key}": ${spec.shape} }`;
+    const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL()}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 1536 }
+      })
+    }, (n) => showToast('রেট লিমিটে পড়েছে, আবার চেষ্টা করা হচ্ছে... (' + n + ')'));
+    const data = await response.json();
+    if(!response.ok) throw new Error((data.error && data.error.message) || 'ব্যর্থ হয়েছে');
+    const candidate = data.candidates && data.candidates[0];
+    const textOut = candidate && candidate.content && candidate.content.parts
+      ? candidate.content.parts.map(p => p.text || '').join('')
+      : '';
+    const clean = textOut.replace(/```json|```/g, '').trim();
+    let parsed;
+    try{
+      parsed = JSON.parse(clean);
+    }catch(e){
+      console.log('regenerateField raw output for "' + key + '":', textOut);
+      throw new Error('ফলাফল পার্স করা যায়নি (raw আউটপুট ব্রাউজার কনসোলে আছে)। আবার চেষ্টা করুন।');
+    }
+    if(parsed[key] === undefined) throw new Error('ফলাফল পাওয়া যায়নি');
+    fieldHistory[key] = lastGenerated[key];
+    lastGenerated[key] = parsed[key];
+    renderResults(lastGenerated);
+    showToast('নতুন ভার্সন তৈরি হয়েছে ✓ (আগেরটা "আগের ভার্সন" বাটনে ফেরত পাবেন)');
+  }catch(err){
+    showToast('সমস্যা হয়েছে: ' + err.message);
+    if(btnEl){ btnEl.disabled = false; btnEl.textContent = '🔄 আবার জেনারেট'; }
+  }
+}
+
+generateBtn.addEventListener('click', async () => {
+  const transcript = transcriptText.value.trim();
+  const apiKey = apiKeyInput.value.trim();
+  if(!apiKey){ showToast('আগে Gemini API Key দিন'); return; }
+  if(!transcript){ showToast('ট্রান্সক্রিপ্ট খালি'); return; }
+  generateBtn.disabled = true;
+  genProgress.style.display = 'block';
+  genHint.textContent = 'জেনারেট হচ্ছে... একটু অপেক্ষা করুন।';
+  resultsArea.innerHTML = '';
+  downloadCard.style.display = 'none';
+  try{
+    const obj = await generateContent(transcript, apiKey, getCustomization(), allSegments);
+    if(obj.chapters && Array.isArray(obj.chapters) && obj.chapters.length){
+      const chapterText = obj.chapters.map(c => `${c.time} ${c.label}`).join('\n');
+      obj.description = (obj.description || '').trim() + '\n\n⏱️ চ্যাপ্টার:\n' + chapterText;
+    }
+    lastGenerated = obj;
+    fieldHistory = {};
+    renderResults(obj);
+    genHint.textContent = 'কনটেন্ট তৈরি সম্পন্ন ✓ — প্রয়োজনমতো কপি বা ডাউনলোড করুন।';
+    downloadCard.style.display = 'block';
+    showToast('কনটেন্ট তৈরি হয়েছে');
+  }catch(err){
+    genHint.textContent = 'সমস্যা হয়েছে: ' + err.message;
+    showToast('জেনারেট করতে সমস্যা হয়েছে');
+    if(err.raw){
+      resultsArea.innerHTML = '';
+      const safeRaw = err.raw.replace(/</g,'&lt;');
+      block(resultsArea, '⚠️ Raw আউটপুট (JSON পার্স ব্যর্থ হয়েছে)', `<pre style="white-space:pre-wrap; margin:0; font-family:'JetBrains Mono',monospace; font-size:12px;">${safeRaw}</pre>`, err.raw);
+    }
+  }finally{
+    generateBtn.disabled = false;
+    genProgress.style.display = 'none';
+  }
+});
+
+$('dlTxt').addEventListener('click', () => {
+  if(!lastGenerated){ showToast('আগে কনটেন্ট জেনারেট করুন'); return; }
+  downloadBlob('video_content.txt', bundleAsText(lastGenerated), 'text/plain');
+});
+$('dlMd').addEventListener('click', () => {
+  if(!lastGenerated){ showToast('আগে কনটেন্ট জেনারেট করুন'); return; }
+  downloadBlob('video_content.md', bundleAsMarkdown(lastGenerated), 'text/markdown');
+});
+$('dlDoc').addEventListener('click', () => {
+  if(!lastGenerated){ showToast('আগে কনটেন্ট জেনারেট করুন'); return; }
+  if(typeof htmlDocx === 'undefined'){
+    showToast('Word এক্সপোর্ট লাইব্রেরি লোড হয়নি — ইন্টারনেট সংযোগ চেক করে আবার চেষ্টা করুন');
+    return;
+  }
+  const bodyHtml = resultsArea.innerHTML;
+  const sourceHTML = `<!DOCTYPE html><html><head><meta charset='utf-8'><title>Video Content</title>
+    <style>body{font-family:'Hind Siliguri',Arial,sans-serif; line-height:1.7;} h2,.rb-title{color:#0b9c8a;} .rb-title{font-weight:bold; font-size:14px; margin-top:14px;} .tag-pill{display:inline-block; margin:2px 4px 2px 0; padding:2px 8px; border:1px solid #ccc; border-radius:10px; font-size:12px;}</style>
+    </head><body>${bodyHtml}</body></html>`;
+  try{
+    const docxBlob = htmlDocx.asBlob(sourceHTML);
+    downloadActualBlob('video_content.docx', docxBlob);
+  }catch(e){
+    showToast('Word ফাইল তৈরি করা যায়নি: ' + e.message);
+  }
+});
+$('dlPdf').addEventListener('click', () => {
+  if(!lastGenerated){ showToast('আগে কনটেন্ট জেনারেট করুন'); return; }
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html><head><meta charset="utf-8"><title>Video Content</title>
+    <style>
+      body{font-family:'Hind Siliguri',Arial,sans-serif; padding:30px; line-height:1.7; color:#111;}
+      h2{color:#0b5; border-bottom:1px solid #ccc; padding-bottom:4px; margin-top:24px;}
+    </style></head><body>${resultsArea.innerHTML}</body></html>
+  `);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>w.print(), 400);
+});
+
+$('copyAllBtn').addEventListener('click', () => {
+  if(!lastGenerated){ showToast('আগে কনটেন্ট জেনারেট করুন'); return; }
+  navigator.clipboard.writeText(bundleAsText(lastGenerated)).then(()=>showToast('সব কনটেন্ট কপি হয়েছে ✓'));
+});
+
+resetBtn.addEventListener('click', () => {
+  if(!confirm('নতুন করে শুরু করবেন? বর্তমান ট্রান্সক্রিপ্ট ও জেনারেট করা কনটেন্ট মুছে যাবে (API key ও কাস্টমাইজেশন সেটিংস থাকবে)।')) return;
+  localStorage.removeItem('vcs_transcript');
+  localStorage.removeItem('vcs_last_generated');
+  videoFile = null;
+  allSegments = [];
+  segmentList.innerHTML = '';
+  subtitleEditor.style.display = 'none';
+  lastGenerated = null;
+  fieldHistory = {};
+  fileName.textContent = '';
+  videoInput.value = '';
+  transcriptText.value = '';
+  transcriptArea.style.display = 'none';
+  resultsArea.innerHTML = '';
+  downloadCard.style.display = 'none';
+  generateBtn.disabled = true;
+  genHint.textContent = 'প্রথমে ধাপ ৩ থেকে ট্রান্সক্রিপ্ট তৈরি করুন।';
+  progressWrap.style.display = 'none';
+  logBox.innerHTML = '';
+  transcribeBtn.textContent = '▶ ট্রান্সক্রিপ্ট শুরু করুন';
+  setStep(2);
+  showToast('রিসেট হয়েছে');
+});
+
+// পেজ রিফ্রেশ/লোড হলে সবসময় ক্লিন অবস্থা থেকে শুরু হবে —
+// শুধু API key, থিম ও কাস্টমাইজেশন প্রেফারেন্স মনে থাকবে, ট্রান্সক্রিপ্ট/জেনারেট করা কনটেন্ট থাকবে না।
+localStorage.removeItem('vcs_transcript');
+localStorage.removeItem('vcs_last_generated');
+
+</script>
+</body>
+</html>
